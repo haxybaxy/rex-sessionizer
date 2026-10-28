@@ -1,4 +1,5 @@
--- rex-sessionizer: a project picker for Rex, ported from tmux-sessionizer.
+-- rex-sessionizer: a project picker for Rex, ported from ThePrimeagen's
+-- tmux-sessionizer: https://github.com/theprimeagen/tmux-sessionizer
 --
 --   require("rex-sessionizer").setup{ work_dir = "~/work" }
 --   rex.bind("ctrl+space>f", "sessionizer")

@@ -1,6 +1,6 @@
 # rex-sessionizer
 
-A project picker for [Rex](https://www.superlogical.com/rex), ported from the tmux sessionizer: one key, a fuzzy list of your project directories, and a session for whichever you pick.
+A project picker for [Rex](https://www.superlogical.com/rex), ported from [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer): one key, a fuzzy list of your project directories, and a session for whichever you pick.
 
 
 https://github.com/user-attachments/assets/08e96606-42da-4053-ba7e-b89186bae3f6
@@ -98,4 +98,4 @@ rex config reload
 
 ## Credits
 
-A port of my tmux sessionizer script, which follows [ThePrimeagen's](https://github.com/ThePrimeagen/tmux-sessionizer).
+The original is [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer). This is a port of my own variant of it, which added the nested-project listing, to Rex sessions.
