@@ -2,6 +2,10 @@
 
 A project picker for [Rex](https://www.superlogical.com/rex), ported from the tmux sessionizer: one key, a fuzzy list of your project directories, and a session for whichever you pick.
 
+
+https://github.com/user-attachments/assets/08e96606-42da-4053-ba7e-b89186bae3f6
+
+
 ## Overview
 
 Press the key and a floating [fzf](https://github.com/junegunn/fzf) picker lists the directories under `~/work`. Pick one and Rex switches to a session for it, creating the session with a shell started in that directory when there isn't one yet. Sessions are labelled after their directory, so the next pick finds the same session, and the current session is listed last, out of the way.
