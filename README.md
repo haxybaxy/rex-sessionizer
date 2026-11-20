@@ -4,7 +4,8 @@ A project picker for [Rex](https://www.superlogical.com/rex), ported from [ThePr
 
 
 
-https://github.com/user-attachments/assets/08e96606-42da-4053-ba7e-b89186bae3f6
+
+https://github.com/user-attachments/assets/09a28223-c15a-40e3-b7be-e7d16c04c0ba
 
 
 
