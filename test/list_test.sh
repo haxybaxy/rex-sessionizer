@@ -24,6 +24,8 @@ check() {
     local expected got
     expected=$(printf '%s\n' "$@")
     got=$("$script" --work-dir "$w" --current "$current" --list | sed "s|^$w/||")
+    # sed indents every line of the lists below, not just the first.
+    # shellcheck disable=SC2001
     if [[ $got == "$expected" ]]; then
         echo "ok   $label"
     else

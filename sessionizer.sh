@@ -31,7 +31,9 @@
 # - When not in project2: project1, project2
 # - When in project2 or its subdirectories: project2-fe, project2-be, project1, project2
 #
-# --list prints the candidates in picker order and exits, for debugging.
+# --list prints the candidates in picker order, one absolute path per line,
+# and exits. The native picker (picker = "native" in init.lua) lists these in
+# Rex's command palette; it also helps with debugging.
 
 set -euo pipefail
 
