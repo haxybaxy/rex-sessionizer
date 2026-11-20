@@ -25,7 +25,7 @@ Picker in project2-fe:  project2/project2-be, project1, project2, project2/proje
 
 ## How it works
 
-- `setup` defines two actions. `sessionizer` opens the picker in a floating terminal over the active window. `sessionizer_go` takes a `path` and switches to its session, creating it if needed; it also works from the CLI, as `rex do sessionizer_go path=project1`.
+- `setup` defines two actions. `sessionizer` opens the picker in a floating terminal over the active window, or in Rex's command palette with the [native picker](#native-picker). `sessionizer_go` takes a `path` and switches to its session, creating it if needed; it also works from the CLI, as `rex do sessionizer_go path=project1`.
 - The float runs `sessionizer.sh`, which lists the directories, runs fzf, and hands the choice back with `rex do sessionizer_go`. That action asks the app to show the session, which the app accepts from the CLI only when Remote Control is on. The action can't wait for the pick itself, because Rex stops taking input while a key-bound action runs.
 
 ## Install
@@ -49,7 +49,7 @@ Turn on Remote Control in Rex → Settings → Rex Server, then reload:
 rex config reload
 ```
 
-Rex loads modules from beside the `init.lua` it opens, so if `init.lua` is a symlink, clone next to the link. fzf has to be on the `PATH` your login shell sets.
+Rex loads modules from beside the `init.lua` it opens, so if `init.lua` is a symlink, clone next to the link. fzf has to be on the `PATH` your login shell sets. The [native picker](#native-picker) needs neither fzf nor Remote Control.
 
 `ctrl+space>f` is a key sequence, like a tmux prefix. If you use one, bind the prefix pressed twice to send it to the terminal:
 
@@ -65,6 +65,7 @@ Any key works, and the picker is also in the command palette as "Switch Project�
 require("rex-sessionizer").setup{
   work_dir = "~/work",                 -- the directory whose subdirectories are projects
   bounds   = { 0.15, 0.1, 0.7, 0.8 },  -- x, y, width, height of the float, as fractions of the window
+  picker   = "float",                  -- "native" lists in Rex's command palette instead (see below)
   layout   = nil,                      -- function(name, path) -> layout for a new session
   script   = nil,                      -- the picker script; sessionizer.sh beside init.lua by default
 }
@@ -81,12 +82,20 @@ layout = function(name, path)
 end
 ```
 
+## Native picker
+
+`picker = "native"` lists the projects in Rex's command palette instead of fzf. It needs a Rex whose server and app can show palette prompts (`rex.ui`, server API revision 17 or later).
+
+- The list is the same as the float's, in the same order: `sessionizer.sh --list` makes it. Projects that already have a session are marked `open`, and the current one `current`.
+- Picking a project switches in the action itself: no float, no fzf, and, from a key or the palette, no Remote Control.
+- The fzf float is used when Rex can't ask in the palette, and for sessions on remote hosts.
+
 ## Test
 
-`test/list_test.sh` checks the directory listing and its order against a fixture, without Rex:
+`test/run.sh` runs every check: the Lua tests against a fake `rex`, the directory listing against a fixture, and shellcheck when it's installed. None of them need Rex. The Lua tests need `luajit` or `lua`.
 
 ```sh
-bash test/list_test.sh
+bash test/run.sh
 ```
 
 ## Upgrade
