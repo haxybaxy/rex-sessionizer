@@ -1,36 +1,40 @@
 # rex-sessionizer
 
-A project picker for [Rex](https://www.superlogical.com/rex), ported from [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer): one key, a fuzzy list of your project directories, and a session for whichever you pick.
+A project picker for [Rex](https://www.superlogical.com/rex), ported from [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer). One key lists your project directories; pick one to switch to its own Rex session.
+
 
 
 https://github.com/user-attachments/assets/08e96606-42da-4053-ba7e-b89186bae3f6
 
 
-## Overview
 
-Press the key and a floating [fzf](https://github.com/junegunn/fzf) picker lists the directories under `~/work`. Pick one and Rex switches to a session for it, creating the session with a shell started in that directory when there isn't one yet. Sessions are labelled after their directory, so the next pick finds the same session, and the current session is listed last, out of the way.
+## Features
 
-The picker understands nested projects. When the current project holds only directories, such as a repo split into `frontend/` and `backend/`, those are listed first. When the current project's parent holds only directories, its siblings are listed first. The top-level projects are always there below.
+- **Switch or create**: fuzzy-pick a directory under `~/work` to jump to its session. If it has none yet, one is created with a shell started in the directory.
+- **Nested projects**: when the current project holds only directories (a repo split into `frontend/` and `backend/`), those are listed first. Inside one of them, its siblings are listed first. Top-level projects are always below, and the current project last.
+- **One session per directory**: sessions are labelled after their directory, so picking it again reopens the same session.
+
+<details>
+<summary>Example: what the picker lists</summary>
 
 ```
 ~/work/
 ├── project1/
-└── project2/
-    ├── project2-fe/
-    └── project2-be/
+├── project2/
+│   ├── project2-fe/
+│   └── project2-be/
+└── zeta/
 
-Picker in project1:     project2, zeta, project1
-Picker in project2-fe:  project2/project2-be, project1, project2, project2/project2-fe
+In project1:     project2, zeta, project1
+In project2:     project2/project2-be, project2/project2-fe, project1, zeta, project2
+In project2-fe:  project2/project2-be, project1, project2, zeta, project2/project2-fe
 ```
 
-## How it works
-
-- `setup` defines two actions. `sessionizer` opens the picker in a floating terminal over the active window, or in Rex's command palette with the [native picker](#native-picker). `sessionizer_go` takes a `path` and switches to its session, creating it if needed; it also works from the CLI, as `rex do sessionizer_go path=project1`.
-- The float runs `sessionizer.sh`, which lists the directories, runs fzf, and hands the choice back with `rex do sessionizer_go`. That action asks the app to show the session, which the app accepts from the CLI only when Remote Control is on. The action can't wait for the pick itself, because Rex stops taking input while a key-bound action runs.
+</details>
 
 ## Install
 
-Clone into Rex's configuration directory:
+Requires `fzf` on your login shell's `PATH` (not needed with the [native picker](#native-picker)).
 
 ```sh
 git clone https://github.com/haxybaxy/rex-sessionizer ~/.config/rex/rex-sessionizer
@@ -43,68 +47,75 @@ require("rex-sessionizer").setup{ work_dir = "~/work" }
 rex.bind("ctrl+space>f", "sessionizer")
 ```
 
-Turn on Remote Control in Rex → Settings → Rex Server, then reload:
+Turn on **Rex → Settings → Rex Server → Remote Control** (required for the float picker), then run `rex config reload`.
 
-```sh
-rex config reload
-```
-
-Rex loads modules from beside the `init.lua` it opens, so if `init.lua` is a symlink, clone next to the link. fzf has to be on the `PATH` your login shell sets. The [native picker](#native-picker) needs neither fzf nor Remote Control.
-
-`ctrl+space>f` is a key sequence, like a tmux prefix. If you use one, bind the prefix pressed twice to send it to the terminal:
-
-```lua
-rex.bind("ctrl+space>ctrl+space", "pane.send_key", { key = "ctrl+space" })
-```
-
-Any key works, and the picker is also in the command palette as "Switch Project…".
+The picker is also in the command palette as "Switch Project…".
 
 ## Options
 
 ```lua
 require("rex-sessionizer").setup{
   work_dir = "~/work",                 -- the directory whose subdirectories are projects
-  bounds   = { 0.15, 0.1, 0.7, 0.8 },  -- x, y, width, height of the float, as fractions of the window
-  picker   = "float",                  -- "native" lists in Rex's command palette instead (see below)
-  layout   = nil,                      -- function(name, path) -> layout for a new session
-  script   = nil,                      -- the picker script; sessionizer.sh beside init.lua by default
+  bounds   = { 0.15, 0.1, 0.7, 0.8 },  -- float x, y, width, height as fractions of the window
+  picker   = "float",                  -- "native" lists in Rex's command palette instead (see below), make sure your server has API v17 or later
+  layout   = nil,                      -- function(name, path) -> rex.layout for a new session
+  script   = nil,                      -- picker script (default: sessionizer.sh)
 }
 ```
 
-A `layout` function builds the first window of a new session with `rex.layout`, for example an editor beside a shell:
+<details>
+<summary>Example: custom layout</summary>
 
 ```lua
-layout = function(name, path)
-  local shell = "com.superlogical.terminal.shell"
-  return rex.layout.horizontal(0.6,
-    rex.layout.block{ flavor = shell, options = { cwd = path, command = { "nvim" } } },
-    rex.layout.block{ flavor = shell, options = { cwd = path } })
-end
+require("rex-sessionizer").setup{
+  work_dir = "~/work",
+  -- nvim beside a shell
+  layout = function(name, path)
+    local shell = "com.superlogical.terminal.shell"
+    return rex.layout.horizontal(0.6,
+      rex.layout.block{ flavor = shell, options = { cwd = path, command = { "nvim" } } },
+      rex.layout.block{ flavor = shell, options = { cwd = path } })
+  end,
+}
 ```
+
+</details>
 
 ## Native picker
+> [!NOTE]
+> This option will become the default once more people update.
 
-`picker = "native"` lists the projects in Rex's command palette instead of fzf. It needs a Rex whose server and app can show palette prompts (`rex.ui`, server API revision 17 or later).
+`picker = "native"` lists projects in Rex's command palette instead of fzf. It needs a Rex whose server and app can show palette prompts (`rex.ui`, server API revision 17 or later).
 
-- The list is the same as the float's, in the same order: `sessionizer.sh --list` makes it. Projects that already have a session are marked `open`, and the current one `current`.
-- Picking a project switches in the action itself: no float, no fzf, and, from a key or the palette, no Remote Control.
+- Picking a project switches in place: no float, no fzf, and no Remote Control needed.
+- The list matches the float's, in the same order. Projects that already have a session are marked `open`, and the current one `current`.
 - The fzf float is used when Rex can't ask in the palette, and for sessions on remote hosts.
 
-## Test
-
-`test/run.sh` runs every check: the Lua tests against a fake `rex`, the directory listing against a fixture, and shellcheck when it's installed. None of them need Rex. The Lua tests need `luajit` or `lua`.
+## CLI
 
 ```sh
-bash test/run.sh
+rex do sessionizer                    # open the picker
+rex do sessionizer_go path=<dir>      # open a directory's session: an absolute path, ~/path, or a name under work_dir
 ```
+
+Run from the CLI, the switch needs Remote Control, whichever picker you use.
+
+## Gotchas
+
+- **Sessions are found by label**: two projects with the same directory name share a session, and renaming a session makes the next pick create a new one.
+- **Symlinked `init.lua`**: clone next to the symlink, not its target.
+- **`ctrl+space` as a prefix**: to still send it to the terminal, add `rex.bind("ctrl+space>ctrl+space", "pane.send_key", { key = "ctrl+space" })`.
 
 ## Upgrade
 
 ```sh
-git -C ~/.config/rex/rex-sessionizer pull
-rex config reload
+git -C ~/.config/rex/rex-sessionizer pull && rex config reload
 ```
+
+## Development
+
+Run `bash test/run.sh` to run all tests: the Lua tests against a fake `rex` (needs `luajit` or `lua`), the directory listing against a fixture, and shellcheck when it's installed.
 
 ## Credits
 
-The original is [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer). This is a port of my own variant of it, which added the nested-project listing, to Rex sessions.
+Ported from [ThePrimeagen's tmux-sessionizer](https://github.com/theprimeagen/tmux-sessionizer), by way of my own variant of it, which added the nested-project listing.

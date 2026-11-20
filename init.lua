@@ -28,7 +28,7 @@
 
 local M = {}
 
-M.version = "0.1.0"
+M.version = "0.2.0"
 
 M.options = {
   -- The directory whose subdirectories are projects. When the current project
